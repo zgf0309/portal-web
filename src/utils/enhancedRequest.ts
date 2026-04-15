@@ -18,10 +18,7 @@ const AUTO_LOGOUT_FLAG = '__AUTO_LOGOUT_TRIGGERED__';
 
 type RequestResult<T> = API.ApiResponse<T> | Blob;
 type HeaderValue = string | number | boolean;
-export type EnhancedRequestOptions = RequestOptions & {
-	silentErrorMessage?: boolean;
-	silentErrorLog?: boolean;
-};
+export type EnhancedRequestOptions = RequestOptions & {}
 type AuthWindow = Window & {
 	[AUTO_LOGOUT_FLAG]?: boolean;
 };
@@ -76,11 +73,8 @@ const normalizeResponse = <T>(response: API.ApiResponse<T>): API.ApiResponse<T> 
 	const normalizedResponse = {
 		...response,
 		message: normalizedMessage,
+		data: response.data ? response.data : (null as T),
 	};
-
-	// if (normalizedResponse.data === '') {
-	// 	normalizedResponse.data = undefined;
-	// }
 
 	return normalizedResponse;
 };
@@ -120,7 +114,7 @@ const handleRequestError = (
 	requestOptions: EnhancedRequestOptions,
 	error: any,
 ): void => {
-	if (!requestOptions.silentErrorMessage && (error?.type === 'Timeout' || /timeout/i.test(error?.message || ''))) {
+	if ((error?.type === 'Timeout' || /timeout/i.test(error?.message || ''))) {
 		message.error('请求超时，请检查网络或稍后重试');
 	}
 
@@ -129,12 +123,8 @@ const handleRequestError = (
 		triggerAutoLogout('登录已失效，请重新登录');
 	}
 
-	if (!requestOptions.silentErrorMessage && error?.response?.status === 500) {
+	if (error?.response?.status === 500) {
 		message.error('服务器异常，请稍后重试');
-	}
-
-	if (!requestOptions.silentErrorLog) {
-		console.error('Request failed:', { url, options: requestOptions, error });
 	}
 };
 
@@ -156,13 +146,11 @@ export async function request<T>(
 
 		const normalizedResponse = normalizeResponse(response);
 
-		if (normalizedResponse.code === 0) {
+		if (normalizedResponse.code === 200) {
 			return normalizedResponse;
 		}
 
-		return normalizedResponse;
-
-		// return handleBusinessError(normalizedResponse);
+		return handleBusinessError(normalizedResponse);
 	} catch (error: any) {
 		handleRequestError(url, requestOptions, error);
 		throw error;

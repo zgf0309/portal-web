@@ -19,6 +19,7 @@ const Settings: ProLayoutProps & {
   "token": {},
   "splitMenus": true,
   "footerRender": false,
+  "siderMenuType": "sub",
 };
 
 export default Settings;

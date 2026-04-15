@@ -1,21 +1,17 @@
 
 import { ssoLogin } from '@/services/ant-design-pro/api';
-import userInfo from '@/utils/userInfo';
 import {StorageKeys, getLocalStorage, setLocalStorage, removeLocalStorage} from '@/utils/storage';
-
 const getRedirectUrl = async () => {
   try {
-    const url = window.location.href;
-    const result: any = await ssoLogin(
-      { url },
-      {
-        silentErrorLog: true,
-        silentErrorMessage: true,
-      },
-    );
-    console.log('result', result);
-    const authorizationUrl = result?.data?.authorization_url || result?.authorization_url;
-    return authorizationUrl || '';
+    const url = `${window.location.origin}${window.location.pathname}`;
+    const res: any = await ssoLogin({ url });
+    console.log('res===>', res);
+    const {code, data } = res;
+    if (code === 200) {
+      return data?.authorization_url || '';
+    } else {
+      return '';
+    }
   } catch (error) {
     console.warn('获取重定向 URL 失败，使用默认登录地址', error);
     return '';
@@ -29,19 +25,16 @@ export const redirectToLogin = async () => {
   }
   // 设置跳转锁
   setLocalStorage(StorageKeys?.REDIRECTING_TO_LOGIN, 'true');
-  
   try {
     const loginUrl = await getRedirectUrl();
     console.log('loginUrl', loginUrl);
     if (!loginUrl) {
-      setLocalStorage(StorageKeys?.CURRENT_USER, '');
-      // clearRedirectFlag();
+      clearRedirectFlag();
       return;
     }
-    setLocalStorage(StorageKeys?.CURRENT_USER, JSON.stringify(userInfo?.data || {}));
     window.location.href = loginUrl;
   } catch (_error) {
-    // clearRedirectFlag();
+    clearRedirectFlag();
   }
 };
 

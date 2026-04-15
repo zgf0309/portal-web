@@ -25,8 +25,6 @@ export async function ssoCallback(
     code?: string;
     /** state */
     state?: string;
-    /** access_token */
-    access_token?: string;
   },
   options?: { [key: string]: any },
 ) {
@@ -41,7 +39,7 @@ export async function ssoCallback(
 
 export async function outLogin(options?: { [key: string]: any }) {
   return request<any>('/api/v1/auth/sso/logout', {
-    method: 'POST',
+    method: 'GET',
     ...(options || {}),
   });
 }

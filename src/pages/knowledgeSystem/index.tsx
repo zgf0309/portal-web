@@ -3,7 +3,7 @@ import { startTransition, type ComponentType, useEffect, useRef, useState, use }
 import WujieReact from 'wujie-react';
 import { defaultChildSettings, useWujieMicroApp } from '@/hooks/useWujieMicroApp';
 import { useModel } from '@umijs/max';
-import { Button } from 'antd';
+import { getLocalStorage, StorageKeys } from '@/utils/storage';
 const { bus } = WujieReact;
 
 const WujieContainer = WujieReact as unknown as ComponentType<Record<string, unknown>>;
@@ -12,7 +12,7 @@ const SUB_APP_URL = '/knowledge-app/';
 const SUB_APP_STORAGE_PREFIX = 'knowledge-app';
 const KnowledgeSystem = () => {
 	const { initialState } = useModel('@@initialState');
-	console.log('initialState1234', initialState);
+	console.log('initialState=====>', initialState);
 	const [settings, setSettings] = useState<ReturnType<typeof defaultChildSettings>>(defaultChildSettings);
 	useEffect(() => {
 		startTransition(() => {
@@ -24,7 +24,7 @@ const KnowledgeSystem = () => {
 	}, [initialState?.settings]);
 	useEffect(() => {
 		localStorage.setItem('childLayoutSettings', JSON.stringify(settings));
-		bus.$emit('force-sub-update', {settings, userInfo: initialState?.currentUser});
+		bus.$emit('force-sub-update', {settings, userInfo: initialState?.currentUser || getLocalStorage(StorageKeys.CURRENT_USER) || null});
 	}, [settings]);
 	const microApp = useWujieMicroApp({
 		name: SUB_APP_NAME,
@@ -44,6 +44,8 @@ const KnowledgeSystem = () => {
 				props={{
 					...microApp.props,
 					settings,
+					token: getLocalStorage(StorageKeys.ACCESS_TOKEN) || '',
+					userInfo: initialState?.currentUser || getLocalStorage(StorageKeys.CURRENT_USER) || null,
 				}}
 			/>
 		</div>

@@ -96,18 +96,19 @@ export const useWujieMicroApp = ({
 
 export const defaultChildSettings = () => {
 	return {
-      "navTheme": "light",
-      "colorPrimary": "#1890ff",
-      "layout": "mix",
-      "contentWidth": "Fluid",
-      "fixedHeader": false,
-      "fixSiderbar": false,
-      "pwa": true,
-      "logo": "logo.svg",
-      "token": {},
-      "splitMenus": false,
-      "headerRender": false,
-      "menuHeaderRender": false,
-      "footerRender": false
-    };
+		"navTheme": "light",
+		"colorPrimary": "#1890ff",
+		"layout": "mix",
+		"contentWidth": "Fluid",
+		"fixedHeader": false,
+		"fixSiderbar": false,
+		"pwa": true,
+		"logo": "logo.svg",
+		"token": {},
+		"splitMenus": false,
+		"menuHeaderRender": false,
+		"footerRender": false,
+		"siderMenuType": "sub",
+		"headerRender": false
+	}
 };

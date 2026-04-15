@@ -7,8 +7,7 @@ import defaultSettings from '../config/defaultSettings';
 import { errorConfig } from './requestErrorConfig';
 import { ssoCallback } from '@/services/ant-design-pro/api';
 import { redirectToLogin, clearRedirectFlag } from '@/utils/redirectUrl';
-import {StorageKeys, getLocalStorage } from '@/utils/storage';
-import userInfo from '@/utils/userInfo';
+import {StorageKeys, getLocalStorage, setLocalStorage } from '@/utils/storage';
 
 const isDev = process.env.NODE_ENV === 'development';
 // const loginPath = '/user/login';
@@ -76,38 +75,64 @@ export async function getInitialState(): Promise<{
 
   const fetchUserInfo = async (code: string, state: string) => {
     try {
-      // const msg = await ssoCallback({ code, state, access_token: '' });
-      console.log('userInfo=====>', userInfo);
-      window.history.replaceState({}, '', window.location.pathname);
-      return userInfo?.data;
+      const res: any = await ssoCallback({ code, state });
+      console.log('res=====>', res);
+      if (res?.code === 200) {
+        window.history.replaceState({}, '', window.location.pathname);
+        return res?.data;
+      } else {
+        return undefined;
+      }
     } catch (_error) {
-      // history.push(loginPath);
+      return undefined;
     }
-    return undefined;
+   
   };
 
   const urlParams = new URLSearchParams(window.location.search);
   const state = urlParams.get('state');
   const code = urlParams.get('code');
+  console.log('code, state1111===>', code, state);
   if (code && state) {
     // 登录成功回调，清除跳转锁
-    // clearRedirectFlag();
-    const currentUser = await fetchUserInfo(code, state);
-    console.log('currentUser=====>', currentUser);
-    return {
-      fetchUserInfo,
-      currentUser,
-      settings: defaultSettings as Partial<LayoutSettings>,
-    };
+    const userInfo: any = await fetchUserInfo(code, state);
+    if (userInfo) {
+      const currentUser = userInfo?.user_info;
+      setLocalStorage(StorageKeys.CURRENT_USER, userInfo?.user_info || '');
+      setLocalStorage(StorageKeys.ACCESS_TOKEN, userInfo?.access_token || '');
+      // 登录失败，清除跳转锁
+      clearRedirectFlag();
+      return {
+        fetchUserInfo,
+        currentUser,
+        settings: defaultSettings as Partial<LayoutSettings>,
+      };
+    } else {
+      // 登录失败，清除跳转锁
+      clearRedirectFlag();
+      return {
+        fetchUserInfo,
+        settings: defaultSettings as Partial<LayoutSettings>,
+      };
+    }
   } else {
     // 登录失败，清除跳转锁
-    // clearRedirectFlag();
-    return {
-    fetchUserInfo,
-    currentUser: userInfo?.data,
-    settings: defaultSettings as Partial<LayoutSettings>,
-  };
-
+    clearRedirectFlag();
+    console.log('code, state=12345==>', code, state);
+    const user = getLocalStorage(StorageKeys.CURRENT_USER) || null;
+    console.log('user===9999==>', user);
+    if (user) {
+      return {
+        fetchUserInfo,
+        currentUser: user,
+        settings: defaultSettings as Partial<LayoutSettings>,
+      };
+    } else {
+      return {
+        fetchUserInfo,
+        settings: defaultSettings as Partial<LayoutSettings>,
+      };
+    }
   }
 }
 
@@ -132,7 +157,7 @@ export const layout: RunTimeLayoutConfig = ({ initialState, setInitialState }) =
     footerRender: () => <Footer />,
     onPageChange: () => {
       // 如果没有登录，重定向到 login
-      if (!initialState?.currentUser && !getLocalStorage(StorageKeys.REDIRECTING_TO_LOGIN)) {
+      if (!initialState?.currentUser && !getLocalStorage(StorageKeys.ACCESS_TOKEN)) {
         redirectToLogin();
       }
     },
