@@ -37,9 +37,18 @@ export async function ssoCallback(
   });
 }
 
-export async function outLogin(options?: { [key: string]: any }) {
+export async function outLogin(params: {
+  // query
+  /** redirect_url */
+  redirect_url?: string;
+  /** id_token_hint */
+  id_token_hint?: string;
+}, options?: { [key: string]: any }) {
   return request<any>('/api/v1/auth/sso/logout', {
     method: 'GET',
+    params: {
+      ...params,
+    },
     ...(options || {}),
   });
 }

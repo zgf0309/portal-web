@@ -10,8 +10,6 @@ import { redirectToLogin, clearRedirectFlag } from '@/utils/redirectUrl';
 import {StorageKeys, getLocalStorage, setLocalStorage } from '@/utils/storage';
 
 const isDev = process.env.NODE_ENV === 'development';
-// const loginPath = '/user/login';
-
 const fallbackPrimaryColor = '#1677ff';
 
 type RuntimeLayoutSettings = Partial<LayoutSettings> & {
@@ -76,7 +74,6 @@ export async function getInitialState(): Promise<{
   const fetchUserInfo = async (code: string, state: string) => {
     try {
       const res: any = await ssoCallback({ code, state });
-      console.log('res=====>', res);
       if (res?.code === 200) {
         window.history.replaceState({}, '', window.location.pathname);
         return res?.data;
@@ -92,7 +89,6 @@ export async function getInitialState(): Promise<{
   const urlParams = new URLSearchParams(window.location.search);
   const state = urlParams.get('state');
   const code = urlParams.get('code');
-  console.log('code, state1111===>', code, state);
   if (code && state) {
     // 登录成功回调，清除跳转锁
     const userInfo: any = await fetchUserInfo(code, state);
@@ -100,6 +96,7 @@ export async function getInitialState(): Promise<{
       const currentUser = userInfo?.user_info;
       setLocalStorage(StorageKeys.CURRENT_USER, userInfo?.user_info || '');
       setLocalStorage(StorageKeys.ACCESS_TOKEN, userInfo?.access_token || '');
+      setLocalStorage(StorageKeys.REFRESH_TOKEN, userInfo?.refresh_token || '');
       // 登录失败，清除跳转锁
       clearRedirectFlag();
       return {

@@ -50,16 +50,20 @@ export const AvatarDropdown: React.FC<GlobalHeaderRightProps> = ({
    * 退出登录，并且将当前的 url 保存
    */
   const loginOut = async () => {
-    const res: any = await outLogin();
-    console.log('res123', res);
-    const { code } = res;
+    const res: any = await outLogin({
+      id_token_hint: localStorage.getItem(StorageKeys.ACCESS_TOKEN) || '',
+      redirect_url: window.location.origin + window.location.pathname,
+    });
+    console.log('res123======>', res);
+    const { code, data } = res;
     if (code === 200) {
       flushSync(() => {
         setInitialState((s) => ({ ...s, currentUser: undefined }));
       });
       removeLocalStorage(StorageKeys.CURRENT_USER);
       removeLocalStorage(StorageKeys.ACCESS_TOKEN);
-     //  window.location.href = '/login';
+      removeLocalStorage(StorageKeys.REFRESH_TOKEN);
+      window.location.href = data?.logout_url;
     }
   };
 
